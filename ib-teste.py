@@ -1,11 +1,8 @@
 """ A Simple Order Routing Mechanism """
-
 from ib.ext.Contract import Contract
-
 from ib.ext.Order import Order
-
 from ib.opt import Connection
-
+import ib.ext.EWrapper as wrapper
 
 
 
@@ -41,11 +38,25 @@ def create_order(order_type, quantity, action):
 	return order
 
 
+contract = Contract()
+contract.symbol = "FISV"
+contract.secType = "OPT"
+contract.exchange = "SMART"
+contract.currency = "USD"
 
+
+class TestWrapper(wrapper.EWrapper):
+	def historicalData(self, reqId: TickerId, date: str, open: float, high: float, low: float, close: float, volume: int, barCount: int, WAP: float, hasGaps: int):
+		super().historicalData(reqId, date, open, high, low, close, volume, barCount, WAP, hasGaps)
+		print("HistoricalData. ", reqId, " Date:", date, "Open:", open,"High:", high, "Low:", low, "Close:", close, "Volume:", volume, barCount, "WAP:", WAP, "HasGaps:", hasGaps)
+
+	def historicalDataEnd(self, reqId: int, start: str, end: str):
+		super().historicalDataEnd(reqId, start, end)
+		print("HistoricalDataEnd ", reqId, "from", start, "to", end)
 
 if __name__ == "__main__":
 	client_id = 1001
-	order_id = 1277
+	order_id = 1
 	port = 7496
 	tws_conn = None
 	try:
@@ -54,8 +65,8 @@ if __name__ == "__main__":
 		tws_conn.connect()
 		tws_conn.register(error_handler, 'Error')
 		tws_conn.registerAll(server_handler)
-		aapl_contract = create_contract('AAPL','STK','SMART','SMART','USD')
-		aapl_order = create_order('MKT', 1200, 'BUY')
+		aapl_contract = create_contract('EUR.USD','STK','SMART','SMART','USD')
+		aapl_order = create_order('MKT', 12000, 'BUY')
 		tws_conn.placeOrder(order_id, aapl_contract, aapl_order)
 	finally:
 		if tws_conn is not None:
